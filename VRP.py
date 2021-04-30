@@ -1,7 +1,7 @@
 from scipy.spatial import distance
 import itertools
 import pandas as pd
-from tsp_vis import visualize_vrp
+#from tsp_vis import visualize_vrp
 
 
 class Market:
@@ -46,7 +46,7 @@ class VRP:
             data = line.split(' ')
             while '' in data:
                 data.remove('')
-            data.remove('\n')
+            data[-1].replace('\n', '')
             coord_x = int(data[1])
             coord_y = int(data[2])
             object = Market(int(data[0]), int(data[3]),
@@ -134,17 +134,22 @@ class VRP:
             return init_sol[j:i:-1] + [init_sol[i]] + init_sol[j + 1:]
         return init_sol[:i] + init_sol[j:i - 1:-1] + init_sol[j + 1:]
 
-    def cross(self, a, b, i, j):
-        return a[:i] + b[j:], b[:j] + a[i:]
+    def crossVal(self, a, b, i, j):
+        lst = list()
+        lst.append(a[:i] + b[j:])
+        lst.append(b[:j] + a[i:])
+        return lst
 
-    def insertion(self, a, b, i, j):
+    def insertionVal(self, a, b, i, j):
         if len(a) == 0:
             return a, b
-        while i >= len(a):
-            i -= len(a)
-        return a[:i] + a[i + 1:], b[:j] + [a[i]] + b[j:]
+        i -= len(a) * int(i / len(a))
+        lst = list()
+        lst.append(a[:i] + a[i + 1:])
+        lst.append(b[:j] + [a[i]] + b[j:])
+        return lst
 
-    def swap(self, a, b, i, j):
+    def swapVal(self, a, b, i, j):
         if i >= len(a) or j >= len(b):
             return a, b
         a, b = a.copy(), b.copy()
@@ -179,7 +184,7 @@ class VRP:
             is_stucked = True
             for i, j in itertools.combinations(range(len(current_sol)), 2):
                 for k, l in itertools.product(range(len(current_sol[i])), range(len(current_sol[j]))):
-                    for func in [self.cross, self.insertion, self.swap]:
+                    for func in [self.crossVal, self.insertionVal, self.swapVal]:
                         c1, c2 = func(current_sol[i][1:-1], current_sol[j][1:-1], k, l)
                         r1, r2 = [self.market_list[0]] + c1 + [self.market_list[0]], \
                                  [self.market_list[0]] + c2 + [self.market_list[0]]
@@ -270,6 +275,6 @@ data_frame = pd.DataFrame(list(zip(data_id, data_x, data_y)), columns = ["Id", "
 vertexes = {data_frame["Id"][i]: [data_frame["X"][i], data_frame["Y"][i]] for i in range(len(data_frame["Id"]))}
 
 init_decision = decision
-visualize_vrp(vertexes, init_decision, node_size=20, edge_size=0.8, font_size=4, dpi=1000)
+#visualize_vrp(vertexes, init_decision, node_size=20, edge_size=0.8, font_size=4, dpi=1000)
 
 
